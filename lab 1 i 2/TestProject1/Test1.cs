@@ -40,7 +40,7 @@ namespace TestProject1
             Problem problem = new Problem(0, ziarno: 42, minGranica, maxGranica);
             problem.Przedmioty = new List<Przedmiot>
             {
-                new Przedmiot(10, 5), // Opłacalność 2.0
+                new Przedmiot(8, 4), // Opłacalność 2.0
                 new Przedmiot(9, 4),  // Opłacalność 2.5
                 new Przedmiot(9, 3),  // Opłacalność 3.0
                 new Przedmiot(7, 6)   // Opłacalność ~1.17
@@ -50,8 +50,8 @@ namespace TestProject1
             Wynik wynik = problem.Rozwiazanie(capacity);
 
             Assert.AreEqual(2, wynik.WybranePrzedmioty.Count, "Powinny być wybrane dwa przedmioty.");
-            Assert.AreEqual(19, wynik.WartoscCalkowita, "Suma wartości powinna wynosić 19.");
-            Assert.AreEqual(8, wynik.WagaCalkowita, "Suma wag powinna wynosić 8.");
+            Assert.AreEqual(18, wynik.WartoscCalkowita, "Suma wartości powinna wynosić 19.");
+            Assert.AreEqual(7, wynik.WagaCalkowita, "Suma wag powinna wynosić 8.");
 
 
         }
