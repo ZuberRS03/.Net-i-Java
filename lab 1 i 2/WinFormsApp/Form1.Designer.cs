@@ -57,7 +57,6 @@
             CapacityBox.Name = "CapacityBox";
             CapacityBox.Size = new Size(131, 23);
             CapacityBox.TabIndex = 1;
-            CapacityBox.TextChanged += CapacityBox_TextChanged;
             // 
             // NumberItemsBox
             // 
@@ -65,7 +64,6 @@
             NumberItemsBox.Name = "NumberItemsBox";
             NumberItemsBox.Size = new Size(131, 23);
             NumberItemsBox.TabIndex = 2;
-            NumberItemsBox.TextChanged += textBox2_TextChanged;
             // 
             // SeedBox
             // 
@@ -73,7 +71,6 @@
             SeedBox.Name = "SeedBox";
             SeedBox.Size = new Size(131, 23);
             SeedBox.TabIndex = 3;
-            SeedBox.TextChanged += textBox3_TextChanged;
             // 
             // label1
             // 
@@ -83,7 +80,6 @@
             label1.Size = new Size(102, 15);
             label1.TabIndex = 4;
             label1.Text = "Ziarno Generatora";
-            label1.Click += label1_Click;
             // 
             // label2
             // 
@@ -129,7 +125,6 @@
             label5.Size = new Size(43, 15);
             label5.TabIndex = 9;
             label5.Text = "Wyniki";
-            label5.Click += label5_Click;
             // 
             // ResultsBox
             // 
@@ -158,7 +153,6 @@
             Controls.Add(button1);
             Name = "Form1";
             Text = "Algorytm Plecakowy";
-            Load += Form1_Load;
             ResumeLayout(false);
             PerformLayout();
         }
