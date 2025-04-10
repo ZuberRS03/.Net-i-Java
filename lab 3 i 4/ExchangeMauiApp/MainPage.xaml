@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ExchangeMauiApp.MainPage"
+             Title="Kursy Walut">
+
+    <ScrollView>
+        <Grid Padding="20" ColumnSpacing="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Lewa kolumna: Wyniki -->
+            <VerticalStackLayout Grid.Column="0" Spacing="10">
+                <Label Text="Wyniki:" FontAttributes="Bold" />
+                <CollectionView x:Name="CurrencyList">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding}" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+
+            <!-- Prawa kolumna: Formularze -->
+            <VerticalStackLayout Grid.Column="1" Spacing="12">
+
+                <!-- Sekcja: Pobierz dane z API -->
+                <Label Text="Pobierz dane z API:" />
+                <Entry x:Name="DateEntry" Placeholder="2024-05-26" />
+                <Button Text="Pobierz dane z API"
+                        Clicked="OnFetchClicked"
+                        BackgroundColor="#a18bbf" />
+
+                <Button Text="Pokaż wszystkie waluty"
+                        Clicked="OnShowClicked"
+                        BackgroundColor="#a18bbf" />
+
+                <!-- Dodaj kraj -->
+                <Label Text="Dodaj kraj:" />
+                <Entry x:Name="CountryNameEntry" Placeholder="Austria" />
+                <Entry x:Name="CountryCurrencyEntry" Placeholder="EUR" />
+                <Button Text="Dodaj kraj"
+                        Clicked="OnAddCountryClicked"
+                        BackgroundColor="#a18bbf" />
+
+                <!-- Wyszukiwanie krajów po walucie -->
+                <Label Text="Szukaj krajów z walutą:" />
+                <Entry x:Name="SearchCurrencyEntry" Placeholder="EUR" />
+                <Button Text="Pokaż kraje z walutą"
+                        Clicked="OnSearchCountriesClicked"
+                        BackgroundColor="#a18bbf" />
+
+                <!-- Wyszukiwanie kursu po kraju -->
+                <Label Text="Szukaj kursu dla kraju:" />
+                <Entry x:Name="CountryRateEntry" Placeholder="Polska" />
+                <Entry x:Name="CountryRateDateEntry" Placeholder="2024-09-12" />
+                <Button Text="Pokaż kurs dla kraju"
+                        Clicked="OnShowRateClicked"
+                        BackgroundColor="#a18bbf" />
+
+                <!-- Kraj + waluta -->
+                <Button Text="Pokaż kraje z walutami"
+                        Clicked="OnShowCountriesClicked"
+                        BackgroundColor="LightBlue" />
+
+                <!-- Wyczyść bazę -->
+                <Button Text="Wyczyść bazę danych"
+                        Clicked="OnClearDatabaseClicked"
+                        BackgroundColor="DarkRed"
+                        TextColor="White" />
+
+            </VerticalStackLayout>
+
+        </Grid>
+    </ScrollView>
+</ContentPage>
