@@ -1,0 +1,132 @@
+﻿@page "/movies"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BlazorApp_zad2.Data
+
+@inject ApplicationDbContext DbContext
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<h1>Movies</h1>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control"
+                   placeholder="Wyszukaj po tytule..."
+                   @bind="searchTerm"
+                   @bind:event="oninput" />
+            <button class="btn btn-outline-secondary" type="button" @onclick="ResetMovies">
+                <i class="bi bi-x-circle"></i> Wyczyść filtr
+            </button>
+        </div>
+    </div>
+    <AuthorizeView>
+        <div class="col-md-6 text-end">
+            <a href="movies/create" class="btn btn-primary">Create New</a>
+        </div>
+    </AuthorizeView>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var movie in FilteredMovies)
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                @if (!string.IsNullOrEmpty(movie.CoverImagePath))
+                {
+                    <img src="@movie.CoverImagePath" class="card-img-top" style="object-fit: cover; max-height: 300px;" />
+                }
+                else
+                {
+                    <div class="card-img-top d-flex justify-content-center align-items-center bg-secondary" style="height: 300px; color: white;">
+                        Brak okładki
+                    </div>
+                }
+
+                <div class="card-body">
+                    <h5 class="card-title">@movie.Title</h5>
+                    <p class="card-text">
+                        <strong>Ocena:</strong> @movie.Rating<br />
+                        <strong>Rok produkcji:</strong> @movie.Year
+                    </p>
+                </div>
+
+                <div class="card-footer text-center">
+                    <a href="@($"/movies/details?id={movie.Id}")" class="btn btn-sm btn-primary me-1">Szczegóły</a>
+
+                    <AuthorizeView>
+                        <Authorized>
+                            <a href="@($"/movies/edit?id={movie.Id}")" class="btn btn-sm btn-warning me-1">Edytuj</a>
+                            <a href="@($"/movies/delete?id={movie.Id}")" class="btn btn-sm btn-danger">Usuń</a>
+                        </Authorized>
+                    </AuthorizeView>
+
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+
+@* <div class="grid-container"> *@
+@*     <QuickGrid Class="table" Items="@FilteredMovies" Pagination="@pagination" SortMode="SortMode.Single"> *@
+@*         <PropertyColumn Property="movie => movie.Title" Title="Tytuł" Sortable="true" /> *@
+@*         <PropertyColumn Property="movie => movie.Year" Title="Rok" Sortable="true" /> *@
+@*         <PropertyColumn Property="movie => movie.Rating" Title="Ocena" Sortable="true" /> *@
+
+@*         <TemplateColumn Title="Okładka"> *@
+@*             <img src="@context.CoverImagePath" alt="Okładka filmu" *@
+@*                  style="max-width: 100px; max-height: 150px;" *@
+@*                  onerror="this.onerror=null; this.src='/images/default.png';" /> *@
+@*         </TemplateColumn> *@
+
+@*         <TemplateColumn Context="movie"> *@
+@*             <AuthorizeView> *@
+@*                 <a href="@($"movies/edit?id={movie.Id}")">Edit</a> | *@
+@*                 <a href="@($"movies/delete?id={movie.Id}")">Delete</a> | *@
+@*             </AuthorizeView> *@
+@*             <a href="@($"movies/details?id={movie.Id}")">Details</a> *@
+@*         </TemplateColumn> *@
+@*     </QuickGrid> *@
+
+@*     <Paginator State="@pagination" /> *@
+@* </div> *@
+
+
+<style>
+    .grid-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+</style>
+
+@code {
+    private IQueryable<Movie> movies = default!;
+    private PaginationState pagination = new() { ItemsPerPage = 5 };
+    private string searchTerm = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        movies = DbContext.Movies.AsQueryable();
+    }
+
+    private IQueryable<Movie> FilteredMovies
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return movies;
+            else
+                return movies.Where(m => m.Title.ToLower().Contains(searchTerm.ToLower()));
+        }
+    }
+
+    private void ResetMovies()
+    {
+        searchTerm = string.Empty;
+    }
+}

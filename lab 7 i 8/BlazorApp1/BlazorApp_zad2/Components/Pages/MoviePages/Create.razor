@@ -1,0 +1,171 @@
+﻿@page "/movies/create"
+@using Microsoft.EntityFrameworkCore
+@using BlazorApp_zad2.Data
+@using System.IO
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject IWebHostEnvironment WebHostEnvironment
+@inject ILogger<Create> Logger
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<AuthorizeView Context="authContextCreate">
+    
+    <NotAuthorized>
+        <h1>Unauthorized</h1>
+        <p>You do not have permission to create a movie.</p>
+    </NotAuthorized>
+    <Authorized>
+<h1>Create</h1>
+
+<h2>Movie</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        @if (ShowSuccessToast)
+        {
+            <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+                <div class="toast show bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            @SuccessMessage
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        <EditForm Model="Movie" OnValidSubmit="HandleValidSubmit" FormName="createMovieForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="mb-3">
+                <label for="title" class="form-label">Title:</label>
+                <InputText id="title" @bind-Value="Movie.Title" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Movie.Title" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="year" class="form-label">Year:</label>
+                <InputNumber id="year" @bind-Value="Movie.Year" class="form-control" />
+                <ValidationMessage For="() => Movie.Year" class="text-danger" />
+            </div>
+
+            <!-- Hidden Rating field with fixed value of 0 -->
+            <div style="display: none;">
+                <InputNumber id="rating" @bind-Value="Movie.Rating" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label for="cover" class="form-label">Upload Cover Image:</label>
+                <InputFile OnChange="UploadImage" accept="image/*" class="form-control" />
+                @if (!string.IsNullOrEmpty(PreviewUrl))
+                {
+                    <br>
+                    <div>
+                        <img src="@PreviewUrl" alt="Podgląd okładki" style="max-width:200px; max-height:200px;" />
+                    </div>
+                    <br>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/movies">Back to List</a>
+</div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [SupplyParameterFromForm]
+    private Movie Movie { get; set; } = new Movie();
+    private string ?PreviewUrl { get; set; }
+    private bool ShowSuccessToast = false;
+    private string? SuccessMessage;
+
+    private async Task UploadImage(InputFileChangeEventArgs e)
+    {
+        try {
+
+            IBrowserFile file = e.File;
+            // Sprawdź, czy plik jest pusty
+            if (file is null) 
+            {
+                Logger.LogWarning("Plik jest pusty.");
+                return;
+            }
+
+            // (Opcjonalnie: walidacja typu i rozmiaru pliku przed zapisem)
+            var format = file.ContentType; // np. "image/png", "image/jpeg"
+            if (!format.StartsWith("image/"))
+            {
+                Logger.LogWarning("Nieprawidłowy format pliku: {Format}", format);
+                return;
+            }
+
+            var uploadsDir = Path.Combine(WebHostEnvironment.WebRootPath, "images");
+            Directory.CreateDirectory(uploadsDir); // upewnij się, że katalog istnieje
+            var fileName = $"{Guid.NewGuid()}_{file.Name}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+            Logger.LogInformation("Zapisuję plik: {FilePath}", filePath);
+            // Zapisz plik na serwerze
+            await using FileStream fs = new(filePath, FileMode.Create);
+            await file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).CopyToAsync(fs);
+            fs.Close();
+            Logger.LogInformation("Plik zapisany: {FilePath}", filePath);
+            // Ustaw ścieżkę URL do podglądu (względem katalogu wwwroot)
+            PreviewUrl = $"/images/{fileName}";
+            // (Nie ustawiamy Movie.CoverImagePath tutaj, zrobimy to przy submit)
+        } catch (Exception ex)
+        {
+            Logger.LogError("Błąd podczas przesyłania obrazu: {Error}", ex.Message);
+            if (ex.InnerException != null)
+            {
+                Logger.LogError("Szczegóły: {InnerError}", ex.InnerException.Message);
+            }
+        }
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            // Zawsze ustaw Rating na 0
+            Movie.Rating = 0;
+
+            // Ustaw ścieżkę do obrazu (domyślna lub przesłana)
+            Logger.LogInformation("Ustawiam CoverImagePath: {PreviewUrl}", PreviewUrl);
+            Movie.CoverImagePath = !string.IsNullOrEmpty(PreviewUrl) 
+                ? PreviewUrl 
+                : "/images/default.png";
+
+            Logger.LogInformation("Zapisuję film: {Title}, Year: {Year}, CoverImagePath: {CoverImagePath}", 
+                Movie.Title, Movie.Year, Movie.CoverImagePath);
+
+            // Zapisz w bazie danych
+            DbContext.Movies.Add(Movie);
+            await DbContext.SaveChangesAsync();
+            // Pokaż toast
+            SuccessMessage = "Movie updated successfully!";
+            ShowSuccessToast = true;
+            StateHasChanged();
+
+            await Task.Delay(3000);
+            ShowSuccessToast = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Błąd podczas zapisywania filmu: {Error}", ex.Message);
+            if (ex.InnerException != null)
+            {
+                Logger.LogError("Szczegóły: {InnerError}", ex.InnerException.Message);
+            }
+        }
+    }
+}

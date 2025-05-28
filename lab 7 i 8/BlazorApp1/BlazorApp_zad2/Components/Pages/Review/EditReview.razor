@@ -1,0 +1,118 @@
+﻿@page "/reviews/edit"
+@using Microsoft.EntityFrameworkCore
+@using BlazorApp_zad2.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Edit Review</PageTitle>
+
+<h1>Edit Your Review</h1>
+
+@if (review == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="review" OnValidSubmit="HandleEditReview">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label>Rating (0 - 5, step 0.5):</label>
+            <InputNumber @bind-Value="review.Rating" class="form-control" step="0.5" min="0" max="5" />
+        </div>
+
+        <div class="mb-3">
+            <label>Content:</label>
+            <InputTextArea @bind-Value="review.Content" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button class="btn btn-secondary ms-2" @onclick="CancelEdit">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    private Review? review;
+    private string? userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userId = user.FindFirst(c => c.Type == "sub" || c.Type.Contains("nameidentifier"))?.Value;
+        }
+
+        review = await DbContext.Reviews.FirstOrDefaultAsync(r => r.Id == Id);
+
+        if (review == null || review.UserId != userId)
+        {
+            // Brak recenzji lub użytkownik nie jest właścicielem ➔ przekierowanie
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task HandleEditReview()
+    {
+        if (review == null || userId == null) return;
+
+        // Pobieramy recenzję z bazy
+        var existingReview = await DbContext.Reviews.FirstOrDefaultAsync(r => r.Id == review.Id && r.UserId == userId);
+        if (existingReview == null)
+        {
+            NavigationManager.NavigateTo("notfound");
+            return;
+        }
+
+        existingReview.Rating = (float)Math.Round(review.Rating * 2, MidpointRounding.AwayFromZero) / 2;
+        existingReview.Content = review.Content;
+
+        await DbContext.SaveChangesAsync();
+
+        // Aktualizujemy średni rating filmu
+        await UpdateMovieRating(existingReview.MovieId);
+
+        NavigationManager.NavigateTo($"/movies/details?id={existingReview.MovieId}");
+    }
+
+    private async Task UpdateMovieRating(int movieId)
+    {
+        var movie = await DbContext.Movies.Include(m => m.Reviews)
+                                          .FirstOrDefaultAsync(m => m.Id == movieId);
+
+        if (movie != null)
+        {
+            if (movie.Reviews.Any())
+            {
+                var avg = movie.Reviews.Average(r => r.Rating);
+                movie.Rating = (float)Math.Round(avg * 2, MidpointRounding.AwayFromZero) / 2;
+            }
+            else
+            {
+                movie.Rating = 0;
+            }
+            await DbContext.SaveChangesAsync();
+        }
+    }
+
+    private void CancelEdit()
+    {
+        if (review != null)
+        {
+            NavigationManager.NavigateTo($"/movies/details?id={review.MovieId}");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}
