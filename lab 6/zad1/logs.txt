@@ -1,0 +1,7 @@
+[2025-05-30 21:02:30] [INFO] Aplikacja uruchomiona
+[2025-05-30 21:02:46] [INFO] Wczytano obraz: ktm_tapeta_3.jpg
+[2025-05-30 21:03:27] [INFO] Zapisano obraz do pliku: C:\Users\matiz\Downloads\wynik.png
+[2025-05-30 21:07:03] [INFO] Aplikacja uruchomiona
+[2025-05-30 21:07:32] [INFO] Wczytano obraz: ktm_tapeta_3.jpg
+[2025-05-30 21:07:56] [INFO] Wczytano obraz: ktm_tapeta_3.jpg
+[2025-05-30 21:08:42] [INFO] Zapisano obraz do pliku: C:\Users\matiz\Downloads\wynik2.png
